@@ -83,4 +83,4 @@ exports.downloadUrls = urls => {
   });
 };
 
-// exports.downloadUrls(['www.google.com']);
+exports.downloadUrls(['www.google.com']);

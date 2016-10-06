@@ -1,46 +1,35 @@
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var helpers = require('./http-helpers');
-// require more modules/folders here!
+var _ = require('underscore');
+var qs = require('querystring');
 
-var actions = {
-  'GET': (req, res) => {
-    res.writeHead(200, helpers.headers);
-    helpers.serveAssets(res, req.url, asset => asset);  
-  },
-  'POST': (req, res) => {
-    res.writeHead(302, helpers.headers);
-
-    req.on('data', requestData => {
-      var requestedURL = requestData.toString().slice(4);
-
-      archive.isUrlInList(requestedURL, result => {
-        console.log('REQUEST URL: ', requestedURL);
-        if (!result) {
-          console.log('I AM NOT IN THE LIST :(');
-          helpers.postData(req, res, asset => asset);
+exports.handleRequest = (req, res) => {
+  // if req method is GET serve public asset
+  if (req.method === 'GET') {
+    helpers.servePublicAssets(res, req.url, _.identity);  
+  // if req method is POST serve public or archive asset
+  } else if (req.method === 'POST') {
+    req.on('data', (data) => {
+      var site = qs.parse(Buffer(data).toString()).url;
+      archive.isUrlArchived(site, (archived) => {
+        console.log('site: ', site, 'archived: ', archived);
+        if (archived) { 
+          helpers.serveArchiveAssets(res, site, _.identity);
         } else {
-          console.log('I AM IN THE LIST!');
-          helpers.serveAssets(res, req.url, asset => asset);
+          archive.isUrlInList(site, inList => {
+            console.log(inList);
+            if (!inList) {
+              archive.addUrlToList(site, _.identity);
+            }
+            helpers.servePublicAssets(res, '/loading.html', _.identity);
+          });
         }
       });
     });
-
-    // why does removing these weird things make 1 test fail??
-    console.log('this fell through!!!!!!!');
-    // DISCOVERY: POST request on '/' falls through
-    console.log(req.url, req.method);
-    // console.log(res);
-    helpers.postData(req, res);
-    helpers.serveAssets(res, req.url, asset => asset);
-  }
-};
-
-exports.handleRequest = (req, res) => {
-  if (!actions[req.method]) {
+  // otherwise, 404
+  } else {
     res.writeHead(404, helpers.headers);
     res.end();
-  } else {
-    actions[req.method](req, res);
   }
 };

@@ -11,8 +11,24 @@ exports.headers = {
   'Content-Type': 'text/html'
 };
 
-var getStatic = (res, site, callback) => {
-  fs.readFile(site, (err, data) => {
+// var writeResponse = (err, data) => {
+//   if (err) {
+//     res.writeHead(404, exports.headers);
+//     res.end();
+//   }
+//   res.end(data, () => callback(res));
+// };
+
+// servepublicassets
+exports.servePublicAssets = (res, url, callback) => {
+  if (url.includes('.css')) {
+    exports.headers['Content-Type'] = 'text/css';
+  }
+  if (url === '/') {
+    url = '/index.html';
+  }
+
+  fs.readFile(path.join(archive.paths.siteAssets, url), (err, data) => {
     if (err) {
       res.writeHead(404, exports.headers);
       res.end();
@@ -21,16 +37,17 @@ var getStatic = (res, site, callback) => {
   });
 };
 
-exports.serveAssets = (res, asset, callback) => {
-  if (asset === '/') {
-    getStatic(res, archive.paths.siteAssets + '/index.html', callback);
-  } else if (asset === '/styles.css' || asset === '/loading.html') {
-    console.log('I AM NEEDED TO RENDER SOME STYLESHEETS');
-    getStatic(res, archive.paths.siteAssets + asset, callback);
-  } else {
-    getStatic(res, archive.paths.archivedSites + '/' + asset, callback);
-  }
+// serverarchiveassets
+exports.serveArchiveAssets = (res, url, callback) => {
+  fs.readFile(path.join(archive.paths.archivedSites, '/', url), (err, data) => {
+    if (err) {
+      res.writeHead(404, exports.headers);
+      res.end();
+    }
+    res.end(data, () => callback(res));
+  });
 };
+
 
 exports.postData = (req, res, callback) => {
   req.on('data', (data) => {
@@ -43,7 +60,7 @@ exports.postData = (req, res, callback) => {
         res.writeHead(404, exports.headers);
         res.end();
       }
-      res.writeHead(200, helpers.headers);
+      res.writeHead(200, exports.headers);
       res.end(staticdata, () => callback(res));
     });
   });
