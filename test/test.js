@@ -9,8 +9,8 @@ var initialize = require('../web/initialize.js');
 initialize(path.join(__dirname, '/testdata'));
 
 archive.initialize({
-  archivedSites: path.join(__dirname, '../archives/sites'),
-  list: path.join(__dirname, '../archives/sites.txt')
+  archivedSites: path.join(__dirname, '/testdata/sites'),
+  list: path.join(__dirname, '/testdata/sites.txt')
 });
 
 var request = supertest.agent(server);
@@ -38,7 +38,6 @@ describe('server', function() {
 
         // Write data to the file.
         fs.writeFileSync(fixturePath, 'google');
-        console.log('FIXTURE PATH: ', fixturePath);
 
         request
           .get('/' + fixtureName)

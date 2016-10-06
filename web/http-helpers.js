@@ -12,7 +12,7 @@ exports.headers = {
 };
 
 var getStatic = function(res, site, callback) {
-  fs.readFile(path.join(__dirname, site), 'utf8', (err, data) => {
+  fs.readFile(path.join(site), (err, data) => {
     if (err) { 
       res.writeHead(404, exports.headers);
       res.end();
@@ -27,16 +27,16 @@ exports.serveAssets = function(res, asset, callback) {
   // css, or anything that doesn't change often.)
 
   if (asset === '/') {
-    getStatic(res, '/public/index.html', callback);
+    getStatic(res, archive.paths.siteAssets + '/index.html', callback);
   } else {
-    getStatic(res, '../archives/sites' + asset, callback);
+    getStatic(res, archive.paths.archivedSites + '/' + asset, callback);
   }
 };
 
 exports.postData = function(req, res) {
   req.on('data', (data) => {
     var site = qs.parse(Buffer(data).toString()).url;
-    var filePath = path.join(__dirname, '../archives/sites.txt');
+    var filePath = path.join(archive.paths.list);
     fs.writeFile(filePath, site + '\n');
   });
 };
