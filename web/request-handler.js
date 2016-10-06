@@ -1,8 +1,15 @@
 var path = require('path');
+var URL = require('url');
 var archive = require('../helpers/archive-helpers');
 var helpers = require('./http-helpers');
 var _ = require('underscore');
 var qs = require('querystring');
+
+var urlStripper = url => {
+  var httpFinder = /(https?):\/\//;
+  var wwwFinder = /(www.)/;
+  return url.replace(httpFinder, '').replace(wwwFinder, '');
+};
 
 exports.handleRequest = (req, res) => {
   // if req method is GET serve public asset
@@ -11,7 +18,9 @@ exports.handleRequest = (req, res) => {
   // if req method is POST serve public or archive asset
   } else if (req.method === 'POST') {
     req.on('data', (data) => {
-      var site = qs.parse(Buffer(data).toString()).url;
+      var site = urlStripper(qs.parse(Buffer(data).toString()).url);
+      console.log('Stripped URL: ', site);
+      // console.log("URL testing: ", site, URL.parse('http://' + site));
       archive.isUrlArchived(site, (archived) => {
         console.log('site: ', site, 'archived: ', archived);
         if (archived) { 
