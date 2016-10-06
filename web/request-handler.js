@@ -10,17 +10,13 @@ var actions = {
   },
   'POST': function(req, res) {
     res.writeHead(302, helpers.headers);
-    // call helper to see if page exists in sites.txt
     archive.isUrlInList(req.url, (result) => {
-      if (!result) { // page does not exist
-      // send to helpers.postData
+      if (!result) {
         helpers.postData(req, res);
-      } else { // page does exist
+      } else {
         helpers.serveAssets(res, req.url, (asset) => asset);
       }
     });
-    // if yes, 
-      // serve them that page!
     helpers.postData(req, res);
     helpers.serveAssets(res, req.url, (asset) => asset);
   }

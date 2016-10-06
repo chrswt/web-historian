@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -16,8 +17,8 @@ exports.paths = {
 };
 
 // Used for stubbing paths for tests, do not modify
-exports.initialize = function(pathsObj) {
-  _.each(pathsObj, function(path, type) {
+exports.initialize = (pathsObj) => {
+  _.each(pathsObj, (path, type) => {
     exports.paths[type] = path;
   });
 };
@@ -25,47 +26,51 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(callback) {
+exports.readListOfUrls = (callback) => {
   fs.readFile(exports.paths.list, 'utf8', (err, data) => {
     callback(data.split('\n'));
   });
 };
 
-exports.isUrlInList = function(url, callback) {
+exports.isUrlInList = (url, callback) => {
   exports.readListOfUrls((data) => {
     callback(_.contains(data, url));
   });
 };
 
-exports.addUrlToList = function(url, callback) {
+exports.addUrlToList = (url, callback) => {
   exports.isUrlInList(url, (bool) => {
     console.log(bool);
     if (!bool) {
       fs.appendFile(exports.paths.list, url + '\n', (err) => {
-        if (err) {
-          console.error(err);
-        } else {
-          callback();
-        }
+        err ? console.log(err) : callback();
       });
     }
   });
 };
 
-exports.isUrlArchived = function(url, callback) {
+exports.isUrlArchived = (url, callback) => {
   fs.exists(exports.paths.archivedSites + '/' + url, (exists) => {
     callback(exists);
   });
 };
 
-exports.downloadUrls = function(urls) {
-  // for each url
+exports.downloadUrls = urls => {
   _.each(urls, (url) => {
-    // if url is not archived
     exports.isUrlArchived(url, (result) => {
       if (!result) {
-        // add url to list
-        fs.writeFile(exports.paths.archivedSites + '/' + url, '');
+        http.request({ host: url }, (response) => {
+          var data = '';
+          response.on('data', (chunk) => {
+            data += chunk;
+          });
+
+          response.on('end', (data) => {
+            fs.writeFile(exports.paths.archivedSites + '/' + url, data, (err) => {
+              if (err) { console.log(err); }
+            });
+          });
+        }).end();
       }
     });
   });

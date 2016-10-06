@@ -38,11 +38,8 @@ exports.postData = function(req, res) {
     var site = qs.parse(Buffer(data).toString()).url;
     var filePath = path.join(archive.paths.list);
     fs.writeFile(filePath, site + '\n');
-    // send to loading.html after posting
     getStatic(res, archive.paths.siteAssets + '/loading.html');
-    // getStatic()
   });
 };
-
 
 // As you progress, keep thinking about what helper functions you can put here!
