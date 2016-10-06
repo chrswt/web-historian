@@ -27,18 +27,22 @@ exports.initialize = (pathsObj) => {
 // modularize your code. Keep it clean!
 
 exports.readListOfUrls = (callback) => {
+  console.log('READING SITES.TXT');
   fs.readFile(exports.paths.list, 'utf8', (err, data) => {
+    console.log('GOT SOME COOL DATA FROM SITES.TXT: ', data);
     callback(data.split('\n'));
   });
 };
 
 exports.isUrlInList = (url, callback) => {
   exports.readListOfUrls((data) => {
+    console.log('LIST OF URLS: ', data);
     callback(_.contains(data, url));
   });
 };
 
 exports.addUrlToList = (url, callback) => {
+  console.log('ADD URL BEING CALLED FOR SOME REASON');
   exports.isUrlInList(url, (bool) => {
     console.log(bool);
     if (!bool) {
@@ -69,7 +73,7 @@ exports.downloadUrls = urls => {
           });
           response.on('end', () => {
             console.log('We got our data! ', data);
-            fs.writeFile(exports.paths.archivedSites + '/' + url, data, (err) => {
+            fs.appendFile(exports.paths.archivedSites + '/' + url, data, (err) => {
               if (err) { console.log(err); }
             });
           });
@@ -79,4 +83,4 @@ exports.downloadUrls = urls => {
   });
 };
 
-exports.downloadUrls(['www.google.com']);
+// exports.downloadUrls(['www.google.com']);

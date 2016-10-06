@@ -12,8 +12,8 @@ exports.headers = {
 };
 
 var getStatic = (res, site, callback) => {
-  fs.readFile(path.join(site), (err, data) => {
-    if (err) { 
+  fs.readFile(site, (err, data) => {
+    if (err) {
       res.writeHead(404, exports.headers);
       res.end();
     }
@@ -24,16 +24,27 @@ var getStatic = (res, site, callback) => {
 exports.serveAssets = (res, asset, callback) => {
   if (asset === '/') {
     getStatic(res, archive.paths.siteAssets + '/index.html', callback);
+  } else if (asset === '/styles.css' || asset === '/loading.html') {
+    console.log('I AM NEEDED TO RENDER SOME STYLESHEETS');
+    getStatic(res, archive.paths.siteAssets + asset, callback);
   } else {
     getStatic(res, archive.paths.archivedSites + '/' + asset, callback);
   }
 };
 
-exports.postData = (req, res) => {
+exports.postData = (req, res, callback) => {
   req.on('data', (data) => {
     var site = qs.parse(Buffer(data).toString()).url;
     var filePath = path.join(archive.paths.list);
-    fs.writeFile(filePath, site + '\n');
-    getStatic(res, archive.paths.siteAssets + '/loading.html');
+    fs.appendFile(filePath, site + '\n'); // <-- CULPRIT!!!!!!! WAS OVERWRITING
+    fs.readFile(archive.paths.siteAssets + '/loading.html', (err, staticdata) => {
+      if (err) { 
+        console.log('LOADING PAGE WONT LOAD LOL');
+        res.writeHead(404, exports.headers);
+        res.end();
+      }
+      res.writeHead(200, helpers.headers);
+      res.end(staticdata, () => callback(res));
+    });
   });
 };
