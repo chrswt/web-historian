@@ -11,7 +11,7 @@ exports.headers = {
   'Content-Type': 'text/html'
 };
 
-var getStatic = function(res, site, callback) {
+var getStatic = (res, site, callback) => {
   fs.readFile(path.join(site), (err, data) => {
     if (err) { 
       res.writeHead(404, exports.headers);
@@ -21,11 +21,7 @@ var getStatic = function(res, site, callback) {
   });
 };
 
-exports.serveAssets = function(res, asset, callback) {
-  // Write some code here that helps serve up your static files!
-  // (Static files are things like html (yours or archived from others...),
-  // css, or anything that doesn't change often.)
-
+exports.serveAssets = (res, asset, callback) => {
   if (asset === '/') {
     getStatic(res, archive.paths.siteAssets + '/index.html', callback);
   } else {
@@ -33,7 +29,7 @@ exports.serveAssets = function(res, asset, callback) {
   }
 };
 
-exports.postData = function(req, res) {
+exports.postData = (req, res) => {
   req.on('data', (data) => {
     var site = qs.parse(Buffer(data).toString()).url;
     var filePath = path.join(archive.paths.list);
@@ -41,5 +37,3 @@ exports.postData = function(req, res) {
     getStatic(res, archive.paths.siteAssets + '/loading.html');
   });
 };
-
-// As you progress, keep thinking about what helper functions you can put here!

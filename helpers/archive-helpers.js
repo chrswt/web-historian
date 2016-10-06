@@ -56,16 +56,19 @@ exports.isUrlArchived = (url, callback) => {
 };
 
 exports.downloadUrls = urls => {
+  console.log('(1) downloading array of urls: ' + urls);
   _.each(urls, (url) => {
+    console.log('(2) focusing on particular url: ' + url);
     exports.isUrlArchived(url, (result) => {
       if (!result) {
         http.request({ host: url }, (response) => {
           var data = '';
           response.on('data', (chunk) => {
+            console.log('receiving chunk... ', chunk);
             data += chunk;
           });
-
-          response.on('end', (data) => {
+          response.on('end', () => {
+            console.log('We got our data! ', data);
             fs.writeFile(exports.paths.archivedSites + '/' + url, data, (err) => {
               if (err) { console.log(err); }
             });
@@ -75,3 +78,5 @@ exports.downloadUrls = urls => {
     });
   });
 };
+
+exports.downloadUrls(['www.google.com']);
