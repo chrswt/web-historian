@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var http = require('http');
+var request = require('request');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -25,11 +26,16 @@ exports.initialize = (pathsObj) => {
 
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
+exports.nukeListOfUrls = () => {
+  fs.writeFile(exports.paths.list, '', 'utf8', (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+};
 
 exports.readListOfUrls = (callback) => {
-  console.log('READING SITES.TXT');
   fs.readFile(exports.paths.list, 'utf8', (err, data) => {
-    console.log('GOT SOME COOL DATA FROM SITES.TXT: ', data);
     callback(data.split('\n'));
   });
 };
@@ -60,27 +66,22 @@ exports.isUrlArchived = (url, callback) => {
 };
 
 exports.downloadUrls = urls => {
-  console.log('(1) downloading array of urls: ' + urls);
   _.each(urls, (url) => {
-    console.log('(2) focusing on particular url: ' + url);
     exports.isUrlArchived(url, (result) => {
       if (!result) {
-        http.request({ host: url }, (response) => {
-          var data = '';
-          response.on('data', (chunk) => {
-            console.log('receiving chunk... ', chunk);
-            data += chunk;
-          });
-          response.on('end', () => {
-            console.log('We got our data! ', data);
-            fs.appendFile(exports.paths.archivedSites + '/' + url, data, (err) => {
-              if (err) { console.log(err); }
+        var fullURL = 'https://' + url;
+        request(fullURL, (err, res, body) => {
+          if (!err && res.statusCode === 200) {
+            fs.appendFile(exports.paths.archivedSites + '/' + url, body);
+          } else {
+            request('http://' + url, (err, res, body) => {
+              if (!err && res.statusCode === 200) {
+                fs.appendFile(exports.paths.archivedSites + '/' + url, body);
+              }
             });
-          });
-        }).end();
+          }
+        });
       }
     });
   });
 };
-
-exports.downloadUrls(['www.google.com']);

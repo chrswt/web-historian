@@ -19,15 +19,11 @@ exports.handleRequest = (req, res) => {
   } else if (req.method === 'POST') {
     req.on('data', (data) => {
       var site = urlStripper(qs.parse(Buffer(data).toString()).url);
-      console.log('Stripped URL: ', site);
-      // console.log("URL testing: ", site, URL.parse('http://' + site));
       archive.isUrlArchived(site, (archived) => {
-        console.log('site: ', site, 'archived: ', archived);
         if (archived) { 
           helpers.serveArchiveAssets(res, site, _.identity);
         } else {
           archive.isUrlInList(site, inList => {
-            console.log(inList);
             if (!inList) {
               archive.addUrlToList(site, _.identity);
             }
